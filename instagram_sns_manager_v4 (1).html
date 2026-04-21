@@ -1,0 +1,331 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.tab-bar{display:flex;gap:4px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:20px}
+.tab{padding:9px 16px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--color-text-secondary);border-bottom:2px solid transparent;transition:all .15s}
+.tab.active{color:var(--color-text-primary);border-bottom-color:var(--color-text-primary);font-weight:500}
+.tab:hover:not(.active){color:var(--color-text-primary)}
+.view{display:none}.view.active{display:block}
+.main-layout{display:grid;grid-template-columns:1fr 224px;gap:16px;align-items:start}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.cal-nav{display:flex;gap:6px;align-items:center}
+.nav-btn{background:none;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:4px 10px;cursor:pointer;font-size:12px;color:var(--color-text-primary)}
+.nav-btn:hover{background:var(--color-background-secondary)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-label{text-align:center;font-size:10px;color:var(--color-text-secondary);padding:3px 0;font-weight:500}
+.cal-cell{min-height:72px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;padding:5px;background:var(--color-background-primary);cursor:pointer;transition:border-color .15s}
+.cal-cell:hover{border-color:var(--color-border-primary)}
+.cal-cell.empty{background:var(--color-background-tertiary);cursor:default;border-color:transparent}
+.cal-cell.today{border-color:#378ADD}
+.cal-cell.selected{border-color:#D85A30;border-width:1.5px}
+.cal-date{font-size:10px;color:var(--color-text-secondary);margin-bottom:3px}
+.cal-post{font-size:9px;padding:1px 4px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:2px}
+.status-ok{background:#EAF3DE;color:#3B6D11}
+.status-pending{background:#FAEEDA;color:#854F0B}
+.status-ng{background:#FCEBEB;color:#A32D2D}
+.legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.legend span{font-size:10px;display:flex;align-items:center;gap:3px}
+.legend-dot{width:7px;height:7px;border-radius:2px;display:inline-block}
+.phone-wrap{position:sticky;top:16px}
+.preview-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px;text-align:center}
+.phone-frame{width:212px;border-radius:36px;border:6px solid #1a1a1a;background:#000;overflow:hidden;box-shadow:0 0 0 1px #333,0 8px 24px rgba(0,0,0,0.25);position:relative;margin:0 auto}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:76px;height:20px;background:#1a1a1a;border-radius:0 0 12px 12px;z-index:20}
+.phone-screen{background:#fff;overflow:hidden;position:relative}
+.ig-statusbar{background:#fff;padding:5px 12px 2px;display:flex;justify-content:space-between;align-items:center}
+.ig-statusbar-time{font-size:9px;font-weight:600;color:#000}
+.ig-topbar{background:#fff;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid #efefef}
+.ig-logo{font-size:15px;font-weight:700;color:#000;font-family:Georgia,serif;letter-spacing:-0.5px}
+.ig-post-header{display:flex;align-items:center;gap:7px;padding:7px 10px 5px}
+.ig-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.ig-username{font-size:11px;font-weight:600;color:#000;line-height:1.2}
+.ig-location{font-size:9px;color:#666}
+.ig-more{font-size:14px;color:#000;margin-left:auto;padding:0 2px}
+.ig-image-area{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative}
+.ig-actions{padding:6px 10px 2px;display:flex;align-items:center;gap:10px}
+.ig-likes{padding:0 10px 2px;font-size:10px;font-weight:600;color:#000}
+.ig-caption{padding:0 10px 3px;font-size:9px;color:#000;line-height:1.4}
+.ig-caption-user{font-weight:600}
+.ig-hashtags{color:#3897f0}
+.ig-comments{padding:0 10px 2px;font-size:8px;color:#8e8e8e}
+.ig-time{padding:0 10px 4px;font-size:7px;color:#8e8e8e;text-transform:uppercase;letter-spacing:0.3px}
+.ig-navbar{background:#fff;border-top:0.5px solid #efefef;display:flex;justify-content:space-around;padding:6px 0 8px}
+svg.ig-icon{fill:none;stroke:#000;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.reel-screen{position:relative;width:100%;aspect-ratio:9/16;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.reel-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:64px;filter:blur(20px);opacity:0.5;transform:scale(1.2)}
+.reel-emoji{font-size:64px;position:relative;z-index:2}
+.reel-overlay{position:absolute;inset:0;z-index:3}
+.reel-statusbar{position:absolute;top:0;left:0;right:0;padding:6px 12px 0;display:flex;justify-content:space-between;align-items:center}
+.reel-statusbar-time{font-size:9px;font-weight:600;color:#fff}
+.reel-topbar{position:absolute;top:22px;left:0;right:0;padding:4px 10px;display:flex;align-items:center;justify-content:space-between}
+.reel-title{font-size:13px;font-weight:600;color:#fff;letter-spacing:0.2px}
+.reel-right-actions{position:absolute;right:8px;bottom:80px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.reel-action{display:flex;flex-direction:column;align-items:center;gap:3px}
+.reel-action-label{font-size:8px;color:#fff;font-weight:500}
+.reel-bottom{position:absolute;bottom:0;left:0;right:0;padding:10px 10px 10px}
+.reel-user-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.reel-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;border:1.5px solid #fff;flex-shrink:0}
+.reel-username{font-size:11px;font-weight:600;color:#fff}
+.reel-follow{font-size:9px;color:#fff;border:1px solid rgba(255,255,255,0.7);padding:2px 8px;border-radius:4px;margin-left:6px}
+.reel-caption{font-size:9px;color:#fff;line-height:1.4;margin-bottom:5px;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+.reel-music{display:flex;align-items:center;gap:4px;font-size:8px;color:rgba(255,255,255,0.9)}
+.reel-progress{position:absolute;bottom:0;left:0;right:0;height:2px;background:rgba(255,255,255,0.3)}
+.reel-progress-bar{height:100%;background:#fff;border-radius:1px;animation:progress 15s linear infinite}
+@keyframes progress{from{width:0%}to{width:100%}}
+.reel-play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:4;transition:opacity .2s}
+.reel-play-btn.playing{opacity:0}
+.reel-play-btn:hover{opacity:1!important}
+.reel-navbar{background:#000;border-top:0.5px solid rgba(255,255,255,0.15);display:flex;justify-content:space-around;padding:6px 0 8px}
+svg.reel-icon{fill:none;stroke:#fff;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.preview-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:40px 16px;min-height:320px;color:var(--color-text-tertiary);font-size:12px;text-align:center;background:#fff}
+.post-list{display:flex;flex-direction:column;gap:10px}
+.post-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;display:flex;gap:14px;align-items:flex-start}
+.post-thumb{width:56px;height:56px;border-radius:8px;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;position:relative}
+.type-badge{position:absolute;bottom:2px;right:2px;background:#000;color:#fff;font-size:7px;padding:1px 3px;border-radius:2px;line-height:1.3}
+.post-info{flex:1;min-width:0}
+.post-meta{display:flex;gap:6px;align-items:center;margin-bottom:5px;flex-wrap:wrap}
+.post-date{font-size:11px;color:var(--color-text-secondary)}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500}
+.post-caption{font-size:12px;color:var(--color-text-secondary);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.checker-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px}
+.checker{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);padding:3px 9px;border-radius:20px;border:0.5px solid var(--color-border-tertiary);cursor:pointer;transition:all .15s;user-select:none}
+.checker.checked{background:#EAF3DE;border-color:#639922;color:#3B6D11}
+.checker.checked .cb{background:#639922;border-color:#639922}
+.cb{width:12px;height:12px;border:1.5px solid var(--color-border-secondary);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cb svg{display:none}.checker.checked .cb svg{display:block}
+.btn-row{display:flex;gap:6px;margin-bottom:7px}
+.action-btn{padding:4px 12px;border-radius:var(--border-radius-md);font-size:11px;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:none;color:var(--color-text-primary);transition:all .15s}
+.action-btn:hover{background:var(--color-background-secondary)}
+.action-btn.approved{background:#EAF3DE;border-color:#639922;color:#3B6D11}
+.action-btn.rejected{background:#FCEBEB;border-color:#A32D2D;color:#A32D2D}
+.comment-saved{margin-bottom:4px}
+.comment-item{font-size:10px;color:var(--color-text-secondary);padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;gap:6px}
+.comment-input{width:100%;font-size:11px;padding:5px 8px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans)}
+.comment-input:focus{outline:none;border-color:var(--color-border-primary)}
+</style>
+
+<h2 class="sr-only">Instagram SNS管理 — フィード・リール混在カレンダー＆投稿チェック</h2>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('calendar')">カレンダー</button>
+  <button class="tab" onclick="switchTab('list')">投稿チェック</button>
+</div>
+
+<div id="view-calendar" class="view active">
+  <div class="main-layout">
+    <div>
+      <div class="cal-header">
+        <div class="cal-nav">
+          <button class="nav-btn" onclick="changeMonth(-1)">←</button>
+          <span id="cal-title" style="font-size:14px;font-weight:500;min-width:90px;text-align:center"></span>
+          <button class="nav-btn" onclick="changeMonth(1)">→</button>
+        </div>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#639922"></span>承認済</span>
+          <span><span class="legend-dot" style="background:#BA7517"></span>確認待ち</span>
+          <span><span class="legend-dot" style="background:#A32D2D"></span>要修正</span>
+          <span><span style="background:#000;color:#fff;font-size:8px;padding:1px 4px;border-radius:2px">REEL</span>リール</span>
+        </div>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-day-label">日</div><div class="cal-day-label">月</div><div class="cal-day-label">火</div>
+        <div class="cal-day-label">水</div><div class="cal-day-label">木</div><div class="cal-day-label">金</div><div class="cal-day-label">土</div>
+        <div id="cal-body" style="display:contents"></div>
+      </div>
+    </div>
+    <div class="phone-wrap">
+      <div class="preview-label" id="preview-label">投稿をクリックしてプレビュー</div>
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen" id="phone-screen">
+          <div class="preview-empty">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="28" height="28" rx="7" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="1.5"/><circle cx="23" cy="9" r="1.5" fill="currentColor"/></svg>
+            <span>投稿日をクリックすると<br>プレビューを表示</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="view-list" class="view">
+  <div class="post-list" id="post-list"></div>
+</div>
+
+<script>
+const CHECKERS=['田中','鈴木','佐藤'];
+const posts=[
+  {id:1,date:'2025-04-07',time:'12:00',type:'feed',emoji:'🌸',caption:'春の新商品コレクション #春 #新作 #ファッション',status:'ok',checkers:{田中:true,鈴木:true,佐藤:true},comments:[{user:'田中',text:'カラーが鮮やか、OKです',time:'04/06 15:30'}],likes:'1,284',username:'brand_official',location:'Tokyo, Japan',bgColor:'#f8e1e8'},
+  {id:2,date:'2025-04-10',time:'18:00',type:'reel',emoji:'☕',caption:'新メニュー登場！限定カフェラテの作り方 #カフェ #コーヒー #限定',status:'pending',checkers:{田中:true,鈴木:false,佐藤:false},comments:[],likes:'3,820',username:'brand_official',location:'',bgColor:'#f0e6d3',music:'Original Audio - brand_official'},
+  {id:3,date:'2025-04-14',time:'12:00',type:'feed',emoji:'👗',caption:'週末コーデ提案 #ootd #coordinate #spring',status:'ng',checkers:{田中:true,鈴木:true,佐藤:false},comments:[{user:'佐藤',text:'背景が暗すぎます。明るく修正お願いします',time:'04/13 10:00'}],likes:'620',username:'brand_official',location:'',bgColor:'#e8d5f0'},
+  {id:4,date:'2025-04-17',time:'20:00',type:'reel',emoji:'🎬',caption:'新作コレクション舞台裏 Behind the scenes #BTS #fashion',status:'pending',checkers:{田中:false,鈴木:false,佐藤:false},comments:[],likes:'—',username:'brand_official',location:'',bgColor:'#1a1a2e',music:'Trending Sound - music_label'},
+  {id:5,date:'2025-04-21',time:'20:00',type:'feed',emoji:'🎁',caption:'プレゼントキャンペーン開始！ #プレゼント #キャンペーン',status:'pending',checkers:{田中:false,鈴木:false,佐藤:false},comments:[],likes:'—',username:'brand_official',location:'',bgColor:'#d5e8f0'},
+  {id:6,date:'2025-04-24',time:'19:00',type:'reel',emoji:'🌿',caption:'エコバッグの使い方10選 サステナブルな毎日を #エコ #sustainable',status:'ok',checkers:{田中:true,鈴木:true,佐藤:true},comments:[],likes:'5,102',username:'brand_official',location:'',bgColor:'#1a2e1a',music:'Eco Vibes - nature_sounds'},
+  {id:7,date:'2025-04-28',time:'12:00',type:'feed',emoji:'✨',caption:'新作エコバッグシリーズ #エコ #sustainable #bag',status:'pending',checkers:{田中:false,鈴木:false,佐藤:false},comments:[],likes:'—',username:'brand_official',location:'',bgColor:'#d5f0e0'},
+];
+const statusLabel={ok:'承認済',pending:'確認待ち',ng:'要修正'};
+const statusClass={ok:'status-ok',pending:'status-pending',ng:'status-ng'};
+let currentYear=2025,currentMonth=4,selectedPostId=null;
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',['calendar','list'][i]===t));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+t).classList.add('active');
+  if(t==='list')renderList();
+}
+function changeMonth(d){
+  currentMonth+=d;
+  if(currentMonth>12){currentMonth=1;currentYear++;}
+  if(currentMonth<1){currentMonth=12;currentYear--;}
+  selectedPostId=null;
+  resetPreview();
+  renderCalendar();
+}
+function resetPreview(){
+  document.getElementById('preview-label').textContent='投稿をクリックしてプレビュー';
+  document.getElementById('phone-screen').innerHTML=`<div class="preview-empty"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="28" height="28" rx="7" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="1.5"/><circle cx="23" cy="9" r="1.5" fill="currentColor"/></svg><span>投稿日をクリックすると<br>プレビューを表示</span></div>`;
+}
+function renderCalendar(){
+  document.getElementById('cal-title').textContent=currentYear+'年'+currentMonth+'月';
+  const body=document.getElementById('cal-body');
+  const first=new Date(currentYear,currentMonth-1,1).getDay();
+  const days=new Date(currentYear,currentMonth,0).getDate();
+  const today=new Date();
+  let html='';
+  for(let i=0;i<first;i++)html+=`<div class="cal-cell empty"></div>`;
+  for(let d=1;d<=days;d++){
+    const ds=currentYear+'-'+String(currentMonth).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const isToday=today.getFullYear()===currentYear&&today.getMonth()+1===currentMonth&&today.getDate()===d;
+    const dayPosts=posts.filter(p=>p.date===ds);
+    const isSelected=dayPosts.some(p=>p.id===selectedPostId);
+    let postsHtml=dayPosts.map(p=>`<div class="cal-post ${statusClass[p.status]}" onclick="event.stopPropagation();selectPost(${p.id})">${p.type==='reel'?'<span style="background:rgba(0,0,0,0.5);color:#fff;font-size:7px;padding:0 2px;border-radius:2px;line-height:1.4">▶</span>':''} ${p.time.slice(0,5)} ${p.emoji}</div>`).join('');
+    const cls=['cal-cell',isToday?'today':'',isSelected?'selected':''].filter(Boolean).join(' ');
+    html+=`<div class="${cls}"><div class="cal-date">${d}</div>${postsHtml}</div>`;
+  }
+  body.innerHTML=html;
+}
+function selectPost(id){
+  selectedPostId=id;
+  renderCalendar();
+  const p=posts.find(x=>x.id===id);
+  document.getElementById('preview-label').textContent=p.date+' '+p.time+' ('+(p.type==='reel'?'リール':'フィード')+')';
+  if(p.type==='reel')showReelPreview(p);
+  else showFeedPreview(p);
+}
+function showFeedPreview(p){
+  const initials=p.username.slice(0,2).toUpperCase();
+  const captionClean=p.caption.replace(/(#\S+)/g,'<span class="ig-hashtags">$1</span>');
+  document.getElementById('phone-screen').innerHTML=`
+    <div class="ig-statusbar"><span class="ig-statusbar-time">9:41</span><div class="ig-statusbar-icons"><svg width="12" height="9" viewBox="0 0 12 9" fill="#000"><rect x="0" y="4" width="2" height="5" rx="0.5"/><rect x="3" y="2.5" width="2" height="6.5" rx="0.5"/><rect x="6" y="1" width="2" height="8" rx="0.5"/><rect x="9" y="0" width="2" height="9" rx="0.5"/></svg><svg width="12" height="7" viewBox="0 0 12 7" fill="none" stroke="#000" stroke-width="1"><rect x="0.5" y="0.5" width="9" height="6" rx="1"/><path d="M10 2.2L11.5 1v5L10 4.8"/></svg></div></div>
+    <div class="ig-topbar"><div class="ig-logo">Instagram</div><div style="display:flex;gap:8px"><svg width="17" height="17" viewBox="0 0 24 24" class="ig-icon"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div></div>
+    <div class="ig-post-header"><div class="ig-avatar" style="background:${p.bgColor};color:#333">${initials}</div><div><div class="ig-username">${p.username}</div>${p.location?`<div class="ig-location">${p.location}</div>`:''}</div><div class="ig-more">···</div></div>
+    <div class="ig-image-area" style="background:${p.bgColor}"><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font-size:42px">${p.emoji}</span><span style="font-size:8px;color:rgba(255,255,255,0.6)">投稿画像</span></div><div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:3px">${[0,1,2].map(i=>`<div style="width:5px;height:5px;border-radius:50%;background:${i===0?'#fff':'rgba(255,255,255,0.45)'}"></div>`).join('')}</div></div>
+    <div class="ig-actions"><svg width="19" height="19" viewBox="0 0 24 24" class="ig-icon"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" class="ig-icon"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" class="ig-icon"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><svg width="19" height="19" viewBox="0 0 24 24" class="ig-icon" style="margin-left:auto"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></div>
+    <div class="ig-likes">いいね！ ${p.likes}件</div>
+    <div class="ig-caption"><span class="ig-caption-user">${p.username}</span> ${captionClean}</div>
+    <div class="ig-comments">コメントをすべて見る</div>
+    <div class="ig-time">数時間前</div>
+    <div class="ig-navbar"><svg width="19" height="19" viewBox="0 0 24 24" class="ig-icon"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><svg width="19" height="19" viewBox="0 0 24 24" class="ig-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><svg width="19" height="19" viewBox="0 0 24 24" class="ig-icon"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><svg width="19" height="19" viewBox="0 0 24 24" class="ig-icon"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><div class="ig-avatar" style="width:19px;height:19px;font-size:7px;background:#ddd;color:#555">${initials}</div></div>`;
+}
+function showReelPreview(p){
+  const initials=p.username.slice(0,2).toUpperCase();
+  const captionClean=p.caption.replace(/(#\S+)/g,'<span style="color:rgba(255,255,255,0.8)">$1</span>');
+  document.getElementById('phone-screen').innerHTML=`
+    <div style="background:#000">
+      <div class="reel-screen">
+        <div class="reel-bg">${p.emoji}</div>
+        <div class="reel-emoji">${p.emoji}</div>
+        <div class="reel-overlay">
+          <div class="reel-statusbar"><span class="reel-statusbar-time">9:41</span><div style="display:flex;gap:4px"><svg width="12" height="9" viewBox="0 0 12 9" fill="#fff"><rect x="0" y="4" width="2" height="5" rx="0.5"/><rect x="3" y="2.5" width="2" height="6.5" rx="0.5"/><rect x="6" y="1" width="2" height="8" rx="0.5"/><rect x="9" y="0" width="2" height="9" rx="0.5"/></svg></div></div>
+          <div class="reel-topbar"><span class="reel-title">リール</span><svg width="18" height="18" viewBox="0 0 24 24" class="reel-icon"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></div>
+          <div class="reel-right-actions">
+            <div class="reel-action"><svg width="22" height="22" viewBox="0 0 24 24" class="reel-icon"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="reel-action-label">${p.likes}</span></div>
+            <div class="reel-action"><svg width="22" height="22" viewBox="0 0 24 24" class="reel-icon"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span class="reel-action-label">コメント</span></div>
+            <div class="reel-action"><svg width="22" height="22" viewBox="0 0 24 24" class="reel-icon"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span class="reel-action-label">シェア</span></div>
+            <div class="reel-action"><svg width="22" height="22" viewBox="0 0 24 24" class="reel-icon"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg><span class="reel-action-label">その他</span></div>
+            <div class="reel-avatar" style="background:${p.bgColor};color:#fff;width:28px;height:28px;font-size:9px">${initials}</div>
+          </div>
+          <div class="reel-bottom">
+            <div class="reel-user-row"><div class="reel-avatar" style="background:${p.bgColor};color:#fff">${initials}</div><span class="reel-username">${p.username}</span><span class="reel-follow">フォロー</span></div>
+            <div class="reel-caption">${captionClean}</div>
+            <div class="reel-music"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>${p.music||'Original Audio'}</div>
+          </div>
+          <div class="reel-progress"><div class="reel-progress-bar" id="reel-bar"></div></div>
+        </div>
+        <div class="reel-play-btn playing" id="play-btn" onclick="togglePlay()"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+      </div>
+      <div class="reel-navbar"><svg width="19" height="19" viewBox="0 0 24 24" class="reel-icon"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><svg width="19" height="19" viewBox="0 0 24 24" class="reel-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="#fff" stroke-width="1.5"/><circle cx="17.5" cy="6.5" r="1" fill="#fff"/></svg><svg width="19" height="19" viewBox="0 0 24 24" class="reel-icon"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><div class="reel-avatar" style="background:${p.bgColor};color:#fff;width:19px;height:19px;font-size:7px">${initials}</div></div>
+    </div>`;
+}
+function togglePlay(){
+  const btn=document.getElementById('play-btn');
+  const bar=document.getElementById('reel-bar');
+  if(!btn)return;
+  if(btn.classList.contains('playing')){btn.classList.remove('playing');bar.style.animationPlayState='paused';}
+  else{btn.classList.add('playing');bar.style.animationPlayState='running';}
+}
+function renderList(){
+  const container=document.getElementById('post-list');
+  container.innerHTML=posts.map(p=>{
+    const checkersHtml=CHECKERS.map(name=>`<div class="checker${p.checkers[name]?' checked':''}" onclick="toggleCheck(${p.id},'${name}',this)"><div class="cb"><svg width="9" height="7" viewBox="0 0 10 8" fill="none"><polyline points="1,4 4,7 9,1" stroke="#3B6D11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>${name}</div>`).join('');
+    const commentsHtml=p.comments.map(c=>`<div class="comment-item"><span><strong>${c.user}</strong>: ${c.text}</span><span style="white-space:nowrap;color:var(--color-text-tertiary);font-size:9px">${c.time}</span></div>`).join('');
+    const count=CHECKERS.filter(n=>p.checkers[n]).length;
+    return `<div class="post-card" id="post-${p.id}">
+      <div class="post-thumb">${p.emoji}<div class="type-badge">${p.type==='reel'?'▶ REEL':'FEED'}</div></div>
+      <div class="post-info">
+        <div class="post-meta">
+          <span class="post-date">${p.date} ${p.time}</span>
+          <span class="badge ${statusClass[p.status]}">${statusLabel[p.status]}</span>
+          <span style="font-size:10px;color:var(--color-text-tertiary)">${count}/${CHECKERS.length}人チェック済</span>
+        </div>
+        <div class="post-caption">${p.caption}</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:5px;font-weight:500">担当者チェック</div>
+        <div class="checker-row">${checkersHtml}</div>
+        <div class="btn-row">
+          <button class="action-btn${p.status==='ok'?' approved':''}" onclick="setStatus(${p.id},'ok',this)">OK</button>
+          <button class="action-btn${p.status==='ng'?' rejected':''}" onclick="setStatus(${p.id},'ng',this)">要修正</button>
+        </div>
+        <div class="comment-saved">${commentsHtml}</div>
+        <div style="display:flex;gap:5px;align-items:center">
+          <input type="text" class="comment-input" id="comment-${p.id}" placeholder="修正コメントを入力..." style="flex:1;height:28px">
+          <button class="action-btn" onclick="addComment(${p.id})" style="height:28px;white-space:nowrap">送信</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleCheck(postId,name,el){
+  const p=posts.find(x=>x.id===postId);
+  p.checkers[name]=!p.checkers[name];
+  el.classList.toggle('checked');
+  const count=CHECKERS.filter(n=>p.checkers[n]).length;
+  const card=document.getElementById('post-'+postId);
+  card.querySelector('[style*="人チェック済"]').textContent=count+'/'+CHECKERS.length+'人チェック済';
+  if(count===CHECKERS.length&&p.status==='pending'){p.status='ok';updateBadge(card,p.status);}
+  else if(count<CHECKERS.length&&p.status==='ok'){p.status='pending';updateBadge(card,p.status);}
+}
+function updateBadge(card,status){
+  const b=card.querySelector('.badge');
+  b.className='badge '+statusClass[status];
+  b.textContent=statusLabel[status];
+}
+function setStatus(postId,status,btn){
+  const p=posts.find(x=>x.id===postId);
+  p.status=status;
+  const card=document.getElementById('post-'+postId);
+  updateBadge(card,status);
+  card.querySelectorAll('.action-btn').forEach(b=>b.classList.remove('approved','rejected'));
+  btn.classList.add(status==='ok'?'approved':'rejected');
+}
+function addComment(postId){
+  const p=posts.find(x=>x.id===postId);
+  const inp=document.getElementById('comment-'+postId);
+  const val=inp.value.trim();if(!val)return;
+  const now=new Date();
+  const t=(now.getMonth()+1).toString().padStart(2,'0')+'/'+now.getDate().toString().padStart(2,'0')+' '+now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  p.comments.push({user:'あなた',text:val,time:t});
+  inp.value='';
+  renderList();
+}
+renderCalendar();
+</script>
